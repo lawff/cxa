@@ -39,6 +39,7 @@ async function init() {
   const initCli = argv._[0] || argv.cli || null
 
   let result = {
+    // TODO: type
     cli: initCli,
   }
 
@@ -46,7 +47,7 @@ async function init() {
     result = await prompts(
       [
         {
-          type: initCli ? null : 'select',
+          type: initCli && CLIS.some(c => c.name === initCli.toLowerCase()) ? null : 'select',
           name: 'cli',
           message:
             typeof initCli === 'string' && CLIS.every(c => c.name !== initCli.toLowerCase())
@@ -76,7 +77,9 @@ async function init() {
     return
   }
 
-  const { cli } = result
+  let { cli = initCli } = result
+
+  cli = typeof cli === 'string' ? CLIS.find(c => c.name === cli.toLowerCase()) : cli
 
   const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent)
   const pkgManager = pkgInfo ? pkgInfo.name : 'npm'

@@ -58,7 +58,7 @@
     "build": "rimraf dist && unbuild",
     "lint": "eslint .",
     "release": "bumpp --commit --push --tag",
-    "dev": "esno src/cli.ts -v",
+    "dev": "esno src/cli.ts",
     "test": "vitest",
     "typecheck": "tsc --noEmit"
   },
