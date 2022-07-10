@@ -7,6 +7,7 @@ All in one cli, you will never remember the CLI command, just run `cxa` and it w
 ```bash
 $ npx cxa@latest
 ```
+![demo](./static/demo.gif)
 
 ## TODO
 
