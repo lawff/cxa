@@ -2,8 +2,10 @@ import minimist from 'minimist'
 import prompts from 'prompts'
 import { execaCommand } from 'execa'
 import {
+  blue,
   green,
   lightBlue,
+  lightCyan,
   red,
   reset,
   yellow,
@@ -33,15 +35,24 @@ const CLIS = [
       pnpm: 'pnpm create next-app',
     },
   },
+  {
+    name: 'react',
+    color: blue,
+    command: {
+      npm: 'npx create-react-app',
+      yarn: 'yarn create react-app',
+      pnpm: 'pnpm create react-app',
+    },
+  },
 ]
 
-async function init() {
-  const initCli = argv._[0] || argv.cli || null
+const needTS = ['react', 'next']
+const needName = ['react']
 
-  let result = {
-    // TODO: type
-    cli: initCli,
-  }
+async function init() {
+  let initCli = argv._[0] || argv.cli || null
+
+  let result: any = {}
 
   try {
     result = await prompts(
@@ -63,6 +74,25 @@ async function init() {
               value: cli,
             }
           }),
+          onState: (state) => {
+            initCli = state.value.name
+          },
+        },
+        {
+          type: cli => needTS.includes(cli?.name.toLowerCase() || initCli.toLowerCase()) ? 'select' : null,
+          name: 'typescript',
+          message: lightCyan('Do you want to use typescript?'),
+          initial: 0,
+          choices: [
+            { title: green('yes'), value: true },
+            { title: green('no'), value: false },
+          ],
+        },
+        {
+          type: () => needName.includes(initCli.toLowerCase()) ? 'text' : null,
+          name: 'projectName',
+          message: lightCyan('Project name:'),
+          initial: 'my-app',
         },
       ],
       {
@@ -77,7 +107,8 @@ async function init() {
     return
   }
 
-  let { cli = initCli } = result
+  // eslint-disable-next-line prefer-const
+  let { cli = initCli, typescript = false, projectName = '' } = result
 
   cli = typeof cli === 'string' ? CLIS.find(c => c.name === cli.toLowerCase()) : cli
 
@@ -86,20 +117,25 @@ async function init() {
 
   console.log('\ok. Now run:\n')
 
-  switch (pkgManager) {
-    case 'pnpm':
-      console.log(`  ${lightBlue(cli.command.pnpm)}\n`)
-      await execaCommand(cli.command.pnpm, { stdio: 'inherit', cwd })
-      break
-    case 'yarn':
-      console.log(`  ${lightBlue(cli.command.yarn)}\n`)
-      await execaCommand(cli.command.yarn, { stdio: 'inherit', cwd })
-      break
-    default:
-      console.log(`  ${lightBlue(cli.command.npm)}\n`)
-      await execaCommand(cli.command.npm, { stdio: 'inherit', cwd })
-      break
+  let runScript = `${cli.command[pkgManager]} ${projectName} `
+
+  if (typescript) {
+    switch (cli.name) {
+      case 'react':
+        runScript += '--template typescript'
+        break
+      case 'next':
+        runScript += pkgManager === 'pnpm' ? '-- --ts' : '--typescript'
+        break
+      default:
+        break
+    }
   }
+
+  console.log(`  ${lightBlue(runScript)}\n`)
+
+  await execaCommand(`${cli.command.pnpm} ${projectName} ${typescript ? '-- --ts' : ''}`, { stdio: 'inherit', cwd })
+
   console.log()
 }
 
