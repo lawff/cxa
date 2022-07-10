@@ -4,6 +4,8 @@
 
 All in one cli, you will never remember the CLI command, just run `cxa` and it will do the job.
 
+Now, react / vite / next is supported.
+
 ```bash
 $ npx cxa@latest
 ```
